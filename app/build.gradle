@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace 'com.mdsimmo.paytime'
-    compileSdk 34
+    compileSdk 33
 
     defaultConfig {
         applicationId "com.mdsimmo.paytime"
-        minSdk 24
-        targetSdk 34
+        minSdk 26
+        targetSdk 33
         versionCode 1
         versionName "1.0"
 
@@ -45,6 +45,7 @@ android {
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
         }
     }
+    buildToolsVersion '33.0.2'
 }
 
 dependencies {
@@ -68,6 +69,6 @@ dependencies {
     debugImplementation 'androidx.compose.ui:ui-tooling'
     debugImplementation 'androidx.compose.ui:ui-test-manifest'
     implementation 'com.google.android.gms:play-services-location:21.0.1'
-
+    implementation("androidx.compose.runtime:runtime-livedata:1.5.4")
 
 }
