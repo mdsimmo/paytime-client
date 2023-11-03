@@ -31,6 +31,8 @@ import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.firebase.messaging.FirebaseMessaging
 
 
 class MainActivity : ComponentActivity() {
@@ -86,7 +88,6 @@ class MainActivity : ComponentActivity() {
 
                         startForegroundService(Intent(this, PingService::class.java))
 
-
                     }, onPingRequest = {
                         Ponger.ping(this)
                         Toast.makeText(this, "Ping sent", Toast.LENGTH_SHORT).show()
@@ -102,6 +103,18 @@ class MainActivity : ComponentActivity() {
                         } else {
                             Toast.makeText(this, "Granted", Toast.LENGTH_SHORT).show()
                         }
+                    }, getToken = {
+                        FirebaseMessaging.getInstance().token.addOnCompleteListener(
+                            OnCompleteListener { task ->
+                                if (!task.isSuccessful) {
+                                    Log.w("MainActivity", "FCM token registration failed", task.exception)
+                                    return@OnCompleteListener
+                                }
+
+                                val token = task.result
+                                Log.w("MainActivity", "Token: $token")
+                                Toast.makeText(this@MainActivity, "Token: $token", Toast.LENGTH_SHORT).show()
+                            })
                     })
                 }
             }
@@ -110,7 +123,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun App(onScheduleRequest: () -> Unit, onPingRequest: () -> Unit, getPermission: () -> Unit) {
+fun App(onScheduleRequest: () -> Unit, onPingRequest: () -> Unit, getPermission: () -> Unit, getToken: () -> Unit) {
     PayTimeTheme {
         Column {
             Button(onClick = onScheduleRequest) {
@@ -121,6 +134,9 @@ fun App(onScheduleRequest: () -> Unit, onPingRequest: () -> Unit, getPermission:
             }
             Button(onClick = getPermission) {
                 Text(text = "Get Permissions")
+            }
+            Button(onClick = getToken) {
+                Text(text = "Get Token")
             }
             val lastPingAttempt: LocalDateTime by Ponger.lastPingAttempt.observeAsState(LocalDateTime.now().minusYears(20))
             BasicText(text = "last attempt: $lastPingAttempt", Modifier.background(Color.White))
@@ -133,5 +149,5 @@ fun App(onScheduleRequest: () -> Unit, onPingRequest: () -> Unit, getPermission:
 @Preview(showSystemUi = true)
 @Composable
 fun Preview() {
-    App({}, {}, {})
+    App({}, {}, {}, {})
 }
