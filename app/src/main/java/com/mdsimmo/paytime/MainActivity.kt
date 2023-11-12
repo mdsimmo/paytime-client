@@ -1,8 +1,11 @@
 package com.mdsimmo.paytime
 
 import android.Manifest
+import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.Location
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -31,8 +34,16 @@ import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.GlobalScope
+import org.json.JSONObject
+import java.io.BufferedReader
+import java.io.DataOutputStream
+import java.io.InputStreamReader
+import java.net.HttpURLConnection
+import java.net.URL
 
 
 class MainActivity : ComponentActivity() {
@@ -115,6 +126,17 @@ class MainActivity : ComponentActivity() {
                                 Log.w("MainActivity", "Token: $token")
                                 Toast.makeText(this@MainActivity, "Token: $token", Toast.LENGTH_SHORT).show()
                             })
+                    }, resetTimer = {
+                        GlobalScope.launch {
+                            try {
+                                Log.i(
+                                    "Reset Result",
+                                    URL("https://nzvjuum1gh.execute-api.ap-southeast-2.amazonaws.com/ping-reset").readText()
+                                )
+                            } catch (e: Exception) {
+                                Log.e("Main Activity", "Failed to fetch", e)
+                            }
+                        }
                     })
                 }
             }
@@ -123,7 +145,8 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun App(onScheduleRequest: () -> Unit, onPingRequest: () -> Unit, getPermission: () -> Unit, getToken: () -> Unit) {
+fun App(onScheduleRequest: () -> Unit, onPingRequest: () -> Unit, getPermission: () -> Unit,
+        getToken: () -> Unit, resetTimer: () -> Unit) {
     PayTimeTheme {
         Column {
             Button(onClick = onScheduleRequest) {
@@ -138,6 +161,9 @@ fun App(onScheduleRequest: () -> Unit, onPingRequest: () -> Unit, getPermission:
             Button(onClick = getToken) {
                 Text(text = "Get Token")
             }
+            Button(onClick = resetTimer) {
+                Text(text = "Reset Time")
+            }
             val lastPingAttempt: LocalDateTime by Ponger.lastPingAttempt.observeAsState(LocalDateTime.now().minusYears(20))
             BasicText(text = "last attempt: $lastPingAttempt", Modifier.background(Color.White))
             val lastPingSuccess: LocalDateTime by Ponger.lastPingSuccess.observeAsState(LocalDateTime.now().minusYears(20))
@@ -149,5 +175,5 @@ fun App(onScheduleRequest: () -> Unit, onPingRequest: () -> Unit, getPermission:
 @Preview(showSystemUi = true)
 @Composable
 fun Preview() {
-    App({}, {}, {}, {})
+    App({}, {}, {}, {}, {})
 }
