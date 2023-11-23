@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.location.Location
 import android.net.ConnectivityManager
+import android.util.JsonReader
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import com.google.android.gms.location.LocationServices
@@ -48,12 +49,17 @@ class Ponger() {
                 val request = JSONObject()
                 request.put("location", locationData)
                 request.put("client", "TODO")
-                val requestString = request.toString()
+                var requestString = request.toString()
+                Log.i("Ponger", requestString)
 
                 GlobalScope.launch {
                     try {
-                        val url =
-                            URL("https://nzvjuum1gh.execute-api.ap-southeast-2.amazonaws.com/ping-update")
+                        val fail = checkFailed()
+                        if (fail) {
+                            requestString = requestString.replace("{", "{\"fail\":true,")
+                            Log.i("Ponger", requestString)
+                        }
+                        val url = URL("https://nzvjuum1gh.execute-api.ap-southeast-2.amazonaws.com/ping-update")
                         val conn = url.openConnection() as HttpURLConnection
                         conn.connectTimeout = 15 * 1000
                         conn.requestMethod = "POST"
@@ -75,6 +81,21 @@ class Ponger() {
                 }
             }
         }
+
+        private fun checkFailed(): Boolean {
+            return try {
+                val connection = URL("https://reddit.com").openConnection() as HttpURLConnection
+                connection.connectTimeout = 2000
+                connection.connect()
+                connection.disconnect()
+                Log.w("Ponger", "Can read reddit")
+                true
+            } catch (e: Exception) {
+                Log.i("Ponger", "Failed to read reddit", e)
+                false
+            }
+        }
     }
+
 
 }

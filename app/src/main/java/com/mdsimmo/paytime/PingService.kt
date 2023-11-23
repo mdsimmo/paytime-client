@@ -11,6 +11,7 @@ import android.os.IBinder
 import android.os.Process
 import android.util.Log
 import android.widget.Toast
+import java.net.URL
 
 class PingService : Service() {
 
